@@ -20,102 +20,108 @@ from backend import Database
 
 database = Database("books.db")
 
-def get_selected_row(event):
-    try:
-        global selected_tuple
-        index = list1.curselection()[0]
-        selected_tuple = list1.get(index)
-        entry1.delete(0, END)
-        entry1.insert(END, selected_tuple[1])
-        entry2.delete(0, END)
-        entry2.insert(END, selected_tuple[2])
-        entry3.delete(0, END)
-        entry3.insert(END, selected_tuple[3])
-        entry4.delete(0, END)
-        entry4.insert(END, selected_tuple[4])
-    except IndexError:
-        pass
+class Window(object):
 
-def view_command():
-    list1.delete(0, END)
-    for row in database.view():
-        list1.insert(END, row)
+    def __init__(self, window):
 
-def search_command():
-    list1.delete(0, END)
-    for row in database.search(title_text.get(), author_text.get(), year_text.get(), isbn_text.get()):
-        list1.insert(END,row)
+        self.window = window
 
-def add_command():
-    database.insert(title_text.get(), author_text.get(), year_text.get(), isbn_text.get())
-    list1.delete(0, END)
-    list1.insert(END,(title_text.get(), author_text.get(), year_text.get(), isbn_text.get()))
+        self.window.wm_title("Book Database")
 
-def delete_command():
-    database.delete(selected_tuple[0])
+        label1 = Label(window, text = "Title")
+        label1.grid(row=0, column=0)
 
-def update_command():
-    database.update(selected_tuple[0],title_text.get(), author_text.get(), year_text.get(), isbn_text.get())
+        label2 = Label(window, text = "Author")
+        label2.grid(row=0, column=2)
+
+        label3 = Label(window, text = "Year")
+        label3.grid(row=1, column=0)
+
+        label4 = Label(window, text = "ISBN")
+        label4.grid(row=1, column=2)
+
+        self.title_text = StringVar()
+        self.entry1 = Entry(window, textvariable = self.title_text)
+        self.entry1.grid(row=0, column=1)
+
+        self.author_text = StringVar()
+        self.entry2 = Entry(window, textvariable = self.author_text)
+        self.entry2.grid(row=0, column=3)
+
+        self.year_text = StringVar()
+        self.entry3 = Entry(window, textvariable = self.year_text)
+        self.entry3.grid(row=1, column=1)
+
+        self.isbn_text = StringVar()
+        self.entry4 = Entry(window, textvariable = self.isbn_text)
+        self.entry4.grid(row=1, column=3)
+
+        self.list1 = Listbox(window, height=6, width=35)
+        self.list1.grid(row=2, column=0, rowspan=6, columnspan=2)
+
+        scroll1 = Scrollbar(window)
+        scroll1.grid(row=2, column=2, rowspan=6)
+
+        self.list1.configure(yscrollcommand = scroll1.set)
+        scroll1.configure(command = self.list1.yview)
+
+        self.list1.bind('<<ListboxSelect>>', self.get_selected_row)
+
+        b1 = Button(window, text="View All", width=12, command=self.view_command)
+        b1.grid(row=2, column=3)
+
+        b2 = Button(window, text="Search", width=12, command=self.search_command)
+        b2.grid(row=3, column=3)
+
+        b3 = Button(window, text="Add Book", width=12, command=self.add_command)
+        b3.grid(row=4, column=3)
+
+        b4 = Button(window, text="Update Book", width=12, command=self.update_command)
+        b4.grid(row=5, column=3)
+
+        b5 = Button(window, text="Delete Book", width=12, command=self.delete_command)
+        b5.grid(row=6, column=3)
+
+        b6 = Button(window, text="Close", width=12, command=window.destroy)
+        b6.grid(row=7, column=3)
+
+    def get_selected_row(self,event):
+        try:
+            global selected_tuple
+            index = self.list1.curselection()[0]
+            self.selected_tuple = self.list1.get(index)
+            self.entry1.delete(0, END)
+            self.entry1.insert(END, self.selected_tuple[1])
+            self.entry2.delete(0, END)
+            self.entry2.insert(END, self.selected_tuple[2])
+            self.entry3.delete(0, END)
+            self.entry3.insert(END, self.selected_tuple[3])
+            self.entry4.delete(0, END)
+            self.entry4.insert(END, self.selected_tuple[4])
+        except IndexError:
+            pass
+
+    def view_command(self):
+        self.list1.delete(0, END)
+        for row in database.view():
+            self.list1.insert(END, row)
+
+    def search_command(self):
+        self.list1.delete(0, END)
+        for row in database.search(self.title_text.get(), self.author_text.get(), self.year_text.get(), self.isbn_text.get()):
+            self.list1.insert(END,row)
+
+    def add_command(self):
+        database.insert(self.title_text.get(), self.author_text.get(), self.year_text.get(), self.isbn_text.get())
+        self.list1.delete(0, END)
+        self.list1.insert(END,(self.title_text.get(), self.author_text.get(), self.year_text.get(), self.isbn_text.get()))
+
+    def delete_command(self):
+        database.delete(self.selected_tuple[0])
+
+    def update_command(self):
+        database.update(self.selected_tuple[0], self.title_text.get(), self.author_text.get(), self.year_text.get(), self.isbn_text.get())
 
 window = Tk()
-
-window.wm_title("Book Database")
-
-label1 = Label(window, text = "Title")
-label1.grid(row=0, column=0)
-
-label2 = Label(window, text = "Author")
-label2.grid(row=0, column=2)
-
-label3 = Label(window, text = "Year")
-label3.grid(row=1, column=0)
-
-label4 = Label(window, text = "ISBN")
-label4.grid(row=1, column=2)
-
-title_text = StringVar()
-entry1 = Entry(window, textvariable = title_text)
-entry1.grid(row=0, column=1)
-
-author_text = StringVar()
-entry2 = Entry(window, textvariable = author_text)
-entry2.grid(row=0, column=3)
-
-year_text = StringVar()
-entry3 = Entry(window, textvariable = year_text)
-entry3.grid(row=1, column=1)
-
-isbn_text = StringVar()
-entry4 = Entry(window, textvariable = isbn_text)
-entry4.grid(row=1, column=3)
-
-list1 = Listbox(window, height=6, width=35)
-list1.grid(row=2, column=0, rowspan=6, columnspan=2)
-
-scroll1 = Scrollbar(window)
-scroll1.grid(row=2, column=2, rowspan=6)
-
-list1.configure(yscrollcommand = scroll1.set)
-scroll1.configure(command = list1.yview)
-
-list1.bind('<<ListboxSelect>>', get_selected_row)
-
-b1 = Button(window, text="View All", width=12, command=view_command)
-b1.grid(row=2, column=3)
-
-b2 = Button(window, text="Search", width=12, command=search_command)
-b2.grid(row=3, column=3)
-
-b3 = Button(window, text="Add Book", width=12, command=add_command)
-b3.grid(row=4, column=3)
-
-b4 = Button(window, text="Update Book", width=12, command=update_command)
-b4.grid(row=5, column=3)
-
-b5 = Button(window, text="Delete Book", width=12, command=delete_command)
-b5.grid(row=6, column=3)
-
-b6 = Button(window, text="Close", width=12, command=window.destroy)
-b6.grid(row=7, column=3)
-
+Window(window)
 window.mainloop()
